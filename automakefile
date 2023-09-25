@@ -1,0 +1,83 @@
+if [ ! -f $1 ]; then
+    exit 84
+fi
+
+if [ ! -s $1 ]; then
+    exit 84
+fi
+
+if [ $# != 1 ]; then
+    exit 84
+fi
+
+if [ $1 == "." ]; then
+    exit 84
+fi
+
+echo -e "##\n## EPITECH PROJECT, 2022\n## Makefile\n## File description:\n## automakefile\n##\n" > Makefile
+
+SOURCE_FILES="$(grep "\.c" "$1" | cut -d ';' -f1 | tr '\n' ' ')"
+HEADERS_FILES="$(grep "\.h" "$1" | cut -d ';' -f2 | tr '\n' ' ')"
+EXEC="$(grep "EXEC" "$1" | awk -F';' '{print $2}')"
+if test -z "$EXEC" 
+then
+    EXEC="$(printf "a.out")"
+fi
+PROJECT_DIR="$(grep "PROJECT_DIR" "$1" | awk -F';' '{print $2}')"
+CC="$(grep "CC" "$1" | awk -F';' '{print $2}')"
+SOURCES_DIR="$(grep "SOURCES_DIR" "$1" | awk -F';' '{print $2}')"
+CFLAGS="$(grep "CFLAGS" "$1" | awk -F';' '{print $2}')"
+HEADERS_DIR="$(grep "HEADERS_DIR" "$1" | awk -F';' '{print $2}')"
+LIBS_DIR="$(grep "LIBS_DIR" "$1" | awk -F';' '{print $2}')"
+BCK_DIR="$(grep "BCK_DIR" "$1" | awk -F';' '{print $2}')"
+ZIPP="$(grep "ZIP" "$1" | awk -F';' '{print $2}')"
+ZIPFLAGS="$(grep "ZIPFLAGS" "$1" | awk -F';' '{print $2}')"
+UNZIP="$(grep "UNZIP" "$1"| awk -F';' '{print $2}')"
+UNZIPFLAGS="$(grep "UNZIPFLAGS" "$1" | awk -F';' '{print $2}')"
+HEADERS=()
+
+PROJECT_DIR=$(cat $1 | grep "PROJECT_DIR;" | cut -d';' -f 2)
+if [[ -z $PROJECT_DIR ]]
+then
+    exit 84
+fi
+
+IFS=' ' read -ra SOURCE_FILES <<< "$SOURCE_FILES"
+IFS=" " read -ra  HEADERS_FILES <<< "$HEADERS_FILES"
+for i in "${HEADERS_FILES[@]}"; do
+    if [[ ! "${HEADERS[*]}" =~ ${i} ]]
+    then
+      HEADERS+=("$i")
+    fi
+done
+
+touch Makefile
+chmod 777 Makefile
+
+printf "\nSRC\t=\t" >> Makefile
+for i in "${SOURCE_FILES[@]}"; do
+    printf "%s/%s " "$SOURCES_DIR" "$i" >> Makefile
+done
+printf "\n" >> Makefile
+echo -e "\nOBJ\t=\t\$(SRC:.c=.o)" >> Makefile
+printf "\nINCLUDE\t=\t" >> Makefile
+for i in "${HEADERS[@]}"; do
+  printf "%s%s/%s " "-I./" "$HEADERS_DIR" "$i" >> Makefile
+  done
+printf "\n" >> Makefile
+echo -e "\nCFLAGS\t=\t$CFLAGS" >> Makefile
+echo -e "\nLDFLAGS\t=" >> Makefile
+echo -e "\nLIBS_DIR\t=\tlibrarys" >> Makefile
+echo -e "\nCC\t=\t$CC" >> Makefile
+echo -e "\nNAME\t=\t$EXEC" >> Makefile
+echo -e "\n\$(NAME): \$(OBJ)" >> Makefile
+echo -e "\t\$(CC) -o \$(NAME) \$(OBJ) \$(CFLAGS) -Llibrarys \$(LDFLAGS) \$(INCLUDE)" >> Makefile
+echo -e "\nall: \$(NAME)\n" >> Makefile
+echo -e "clean:" >> Makefile
+echo -e "\trm -f \$(OBJ)" >> Makefile
+echo -e "\trm -f *.gcno" >> Makefile
+echo -e "\trm -f vgcore.*" >> Makefile
+echo -e "\nfclean:\tclean\n\trm -f \$(NAME)" >> Makefile
+echo -e "\nre:\tclean all" >> Makefile
+
+mv Makefile $PROJECT_DIR
